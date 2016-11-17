@@ -46,7 +46,6 @@ VERSION="1.10"
 ORIGCMD="$0 $*"
 UPDATE_LOCATION="https://raw.githubusercontent.com/srvrco/checkssl/master/checkssl"
 RENEW_ALERT="30" # set to number of days to be alerted for certificate renewal ( default, can be changed with -expires argument)
-REMOTE_EXTRA=""
 _QUIET=0
 _UPGRADE=0
 _UPGRADE_CHECK=1
@@ -105,7 +104,7 @@ signal_exit() { # Handle trapped signals
 }
 
 usage() {
-  echo -e "Usage: $PROGNAME [-h|--help] [-d|--debug] [-f|--file filename] [-s|--server stype] [-l|--location directory] 
+  echo -e "Usage: $PROGNAME [-h|--help] [-d|--debug] [-f|--file filename] [-s|--server stype] [-l|--location directory]
                 [-e|--expires days] [-r|--renew] [-u|--update] [-U|--nocheck] [-c|--command command] [domain]"
 }
 
@@ -180,7 +179,7 @@ check_upgrade () {
   localvdec=$(echo "$VERSION"| tr -d '.' )
   debug "current code is version ${VERSION}"
   debug "Most recent version is  ${latestversion}"
-  # use a default of 0 for cases where the latest code has not been obtained. 
+  # use a default of 0 for cases where the latest code has not been obtained.
   if [ "${latestvdec:-0}" -gt "$localvdec" ]; then
     if [ ${_UPGRADE} -eq 1 ]; then
       temp_upgrade="$(mktemp)"
@@ -301,7 +300,7 @@ if [ $SERVERARG ]; then
   fi
 fi
 
-# read directory names as domains in given directory ( format used by letsencrypt and getssl ) 
+# read directory names as domains in given directory ( format used by letsencrypt and getssl )
 if [ $LOCATIONARG ]; then
   debug "getting list of domains from directory"
   for f in ${LOC}/*; do
@@ -315,11 +314,12 @@ fi
 
 debug "completed creating list of domains"
 
-# read domains from file 
+# read domains from file
 while IFS= read -r LINE; do
   if [ ! -z "$LINE" ]; then
     PS=443
     PORT=443
+    REMOTE_EXTRA=""
     if [[ "$LINE" == *":"* ]]; then
       DOMAIN=$(echo "$LINE" | awk -F":" '{print $1}')
       PS=$(echo "$LINE" | awk -F":" '{print $2}')
@@ -328,18 +328,19 @@ while IFS= read -r LINE; do
     fi
 
     case "${PS}" in
-      https | 443)   PORT=443;  REMOTE_EXTRA="" ;;
+      https | 443)   PORT=443;;
       ftp   | 21)    PORT=21;   REMOTE_EXTRA="-starttls ftp" ;;
-      ftpi  | 990 )  PORT=990;  REMOTE_EXTRA="" ;;
+      ftpi  | 990 )  PORT=990;;
       imap  | 143 )  PORT=143;  REMOTE_EXTRA="-starttls imap" ;;
-      imaps | 993 )  PORT=993;  REMOTE_EXTRA="" ;;
+      imaps | 993 )  PORT=993;;
       pop3  | 110 )  PORT=110 ; REMOTE_EXTRA="-starttls pop3" ;;
-      pop3s | 995 )  PORT=995;  REMOTE_EXTRA=""  ;;
+      pop3s | 995 )  PORT=995;;
       smtp  | 25 )   PORT=25;   REMOTE_EXTRA="-starttls smtp" ;;
       smtps | 587 )  PORT=587;  REMOTE_EXTRA="-starttls smtp" ;;
       xmpp  | 5222 ) PORT=5222; REMOTE_EXTRA="-starttls xmpp" ;;
-      xmpps | 5269 ) PORT=5269; REMOTE_EXTRA="" ;;
-      ldaps | 636 )  PORT=636;  REMOTE_EXTRA=""  ;;
+      xmpps | 5269 ) PORT=5269;;
+      ldaps | 636 )  PORT=636;;
+      *)             PORT=$PS;;
     esac
 
 #    DOMAIN=${DOMAIN// /}
